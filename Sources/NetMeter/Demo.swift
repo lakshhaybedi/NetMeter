@@ -45,8 +45,18 @@ extension Store {
         baselines[baselineKey("Phone Hotspot")] = Int64(66e9)
         pins = [PinnedApp(name: "Music", exact: true, path: paths["Music"]), PinnedApp(name: "TV", exact: true, path: paths["TV"])]
         network = "Home Wi-Fi"
-        downHist = (0..<60).map { i in max(0, 2.2e6 + 1.8e6 * sin(Double(i) / 4) + r(0, 1.2e6) + (i > 50 ? 2.5e6 : 0)) }
-        upHist = (0..<60).map { i in max(0, 0.18e6 + 0.1e6 * sin(Double(i) / 5) + r(0, 0.12e6)) }
+        // small sub-expressions: older compilers give up on one long arithmetic closure
+        downHist = (0..<60).map { (i: Int) -> Double in
+            let wave: Double = 1.8e6 * sin(Double(i) / 4)
+            let burst: Double = i > 50 ? 2.5e6 : 0
+            let noise: Double = r(0, 1.2e6)
+            return max(0, 2.2e6 + wave + noise + burst)
+        }
+        upHist = (0..<60).map { (i: Int) -> Double in
+            let wave: Double = 0.1e6 * sin(Double(i) / 5)
+            let noise: Double = r(0, 0.12e6)
+            return max(0, 0.18e6 + wave + noise)
+        }
         down = downHist.last!; up = upHist.last!
         locationStatus = .authorizedAlways; notifStatus = .authorized
     }
