@@ -1,0 +1,7 @@
+.build/
+.swiftpm/
+NetMeter.app/
+dist/
+*.dmg
+.DS_Store
+xcuserdata/
